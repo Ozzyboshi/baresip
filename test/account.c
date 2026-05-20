@@ -35,6 +35,7 @@ static const char str[] =
 	";inreq_allowed=yes"
 	";mediaenc=dtls_srtp"
 	";medianat=ice"
+	";callid_suffix=MYFIXED"
 	";mwi=no"
 	";natpinhole=yes"
 	";outbound=\"sip:edge.domain.com\""
@@ -79,6 +80,7 @@ static int verify_account(const struct account *acc)
 	ASSERT_EQ(INREQ_MODE_ON, account_inreq_mode(acc));
 	ASSERT_STREQ("dtls_srtp", account_mediaenc(acc));
 	ASSERT_STREQ("ice", account_medianat(acc));
+	ASSERT_STREQ("", account_callid_suffix(acc));
 	ASSERT_TRUE(!account_mwi(acc));
 	ASSERT_STREQ("sip:edge.domain.com", account_outbound(acc, 0));
 	ASSERT_TRUE(NULL == account_outbound(acc, 1));

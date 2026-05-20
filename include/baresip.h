@@ -145,6 +145,7 @@ const char *account_stun_pass(const struct account *acc);
 const char *account_stun_host(const struct account *acc);
 const struct stun_uri *account_stun_uri(const struct account *acc);
 uint16_t account_stun_port(const struct account *acc);
+const char *account_callid_suffix(const struct account *acc);
 const char *account_mediaenc(const struct account *acc);
 const char *account_medianat(const struct account *acc);
 bool account_mwi(const struct account *acc);

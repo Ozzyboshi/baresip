@@ -34,6 +34,7 @@ static void destructor(void *arg)
 	mem_deref(acc->mnatid);
 	mem_deref(acc->mencid);
 	mem_deref(acc->aor);
+	mem_deref(acc->callid_suffix);
 	mem_deref(acc->dispname);
 	mem_deref(acc->buf);
 	mem_deref(acc->ausrc_mod);
@@ -544,6 +545,9 @@ static int sip_params_decode(struct account *acc, const struct sip_addr *aor)
 
 	err |= param_bool(&acc->autoredirect, &aor->params,
 			  "sip_autoredirect");
+
+	err |= param_dstr(&acc->callid_suffix, &aor->params,
+			  "callid_suffix");
 
 	return err;
 }
@@ -1837,6 +1841,19 @@ const char *account_mediaenc(const struct account *acc)
 
 
 /**
+ * Get the Call-ID suffix of an account
+ *
+ * @param acc User-Agent account
+ *
+ * @return Call-ID suffix or NULL if not set
+ */
+const char *account_callid_suffix(const struct account *acc)
+{
+	return acc ? acc->callid_suffix : NULL;
+}
+
+
+/**
  * Get the media NAT handling of an account
  *
  * @param acc User-Agent account
@@ -2107,6 +2124,8 @@ int account_debug(struct re_printf *pf, const struct account *acc)
 			  acc->mencid ? acc->mencid : "none");
 	err |= re_hprintf(pf, " medianat:         %s\n",
 			  acc->mnatid ? acc->mnatid : "none");
+	err |= re_hprintf(pf, " callid_suffix:     %s\n",
+			  acc->callid_suffix ? acc->callid_suffix : "none");
 	err |= re_hprintf(pf, " mwi:              %s\n",
 			  account_mwi(acc) ? "yes" : "no");
 	err |= re_hprintf(pf, " natpinhole:       %s\n",

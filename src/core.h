@@ -89,6 +89,7 @@ struct account {
 	char *extra;                 /**< Extra parameters                   */
 	char *uas_user;              /**< UAS authentication username        */
 	char *uas_pass;              /**< UAS authentication password        */
+	char *callid_suffix;         /**< Call-ID template; may contain %llu */
 	bool rtcp_mux;               /**< RTCP multiplexing                  */
 	bool pinhole;                /**< NAT pinhole flag                   */
 	bool catchall;               /**< Catch all inbound requests         */

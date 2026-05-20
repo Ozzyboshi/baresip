@@ -69,6 +69,7 @@ static int account_write_template(const char *file)
 			 "#    ;mediaenc={srtp,srtp-mand,srtp-mandf"
 			 ",dtls_srtp,zrtp}\n"
 			 "#    ;medianat={stun,turn,ice}\n"
+		"#    ;callid_suffix=%llu-STRING\n"
 			 "#    ;mwi={yes, no}  # default: yes\n"
 			 "#    ;natpinhole={yes, no}  # default: no\n"
 			 "#    ;outbound2=sip:secondary.example.com\n"

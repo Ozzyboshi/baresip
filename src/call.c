@@ -1039,7 +1039,46 @@ int call_connect(struct call *call, const struct pl *paddr)
 	info("call: connecting to '%r'..\n", paddr);
 
 	call->outgoing = true;
-	err = str_x64dup(&call->id, rand_u64());
+	char buf[256];
+	const char *tmpl = account_callid_suffix(call->acc);
+	const char *placeholder = "%llu";
+	const char *p;
+	unsigned long long rnd = rand_u64();
+
+	if (tmpl && *tmpl) {
+		p = strstr(tmpl, placeholder);
+		if (p) {
+			size_t prefix_len = (size_t)(p - tmpl);
+			const char *suffix = p + strlen(placeholder);
+			size_t suffix_len = strlen(suffix);
+			char rndstr[32];
+			int rlen;
+
+			rlen = re_snprintf(rndstr, sizeof(rndstr), "%llu", rnd);
+			if (rlen < 0)
+				return ENOMEM;
+
+			if (prefix_len + (size_t)rlen + suffix_len + 1 > sizeof(buf))
+				return ENOMEM;
+
+			memcpy(buf, tmpl, prefix_len);
+			memcpy(buf + prefix_len, rndstr, (size_t)rlen);
+			memcpy(buf + prefix_len + (size_t)rlen, suffix, suffix_len + 1);
+		}
+		else {
+			re_snprintf(buf, sizeof(buf), "%llu-%s",
+				(unsigned long long)rnd, tmpl);
+		}
+	}
+	else {
+		re_snprintf(buf, sizeof(buf), "%llu",
+			(unsigned long long)rnd);
+	}
+
+	err = str_dup(&call->id, buf);
+	info("call: callid generated is '%s'..\n", call->id);
+	
+	//err = str_x64dup(&call->id, rand_u64());
 	if (err)
 		return err;
 
