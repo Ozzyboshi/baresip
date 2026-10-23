@@ -252,23 +252,48 @@ static int call_xfer(struct re_printf *pf, void *arg)
 }
 
 
+/**
+ * Start an attended transfer: put the current call on hold and call
+ * the transfer target (consultation call)
+ *
+ * @param pf   Print handler
+ * @param arg  Command arguments (carg)
+ *             carg->data is an optional pointer to a User-Agent
+ *             carg->prm is "<uri> [force]", where "force" skips the
+ *             check for peer support of the Replaces header
+ *
+ * @return 0 if success, otherwise errorcode
+ */
 static int attended_xfer(struct re_printf *pf, void *arg)
 {
 	const struct cmd_arg *carg = arg;
 	struct ua *ua = carg->data ? carg->data : menu_uacur();
 	struct menu *menu = menu_get();
+	const char *usage = "usage: /atransferstart <uri> [force]\n";
+	struct pl pl_uri, pl_opt;
+	bool force = false;
+	char *uri = NULL;
 	int err = 0;
 
-	(void)pf;
-
-	if (!str_len(carg->prm)) {
+	if (re_regex(carg->prm, str_len(carg->prm), "[^ ]+[ ]*[^ ]*",
+		     &pl_uri, NULL, &pl_opt)) {
 		info ("menu: no transfer target specified\n");
 		goto out;
 	}
 
+	/* optional "force" skips the Replaces check */
+	if (pl_isset(&pl_opt)) {
+		if (pl_strcmp(&pl_opt, "force")) {
+			re_hprintf(pf, "%s", usage);
+			return EINVAL;
+		}
+
+		force = true;
+	}
+
 	menu->xfer_call = ua_call(ua);
 
-	if (!call_supported(menu->xfer_call, REPLACES)) {
+	if (!call_supported(menu->xfer_call, REPLACES) && !force) {
 		info ("menu: peer does not support Replaces header\n");
 		goto out;
 	}
@@ -277,13 +302,18 @@ static int attended_xfer(struct re_printf *pf, void *arg)
 	if (err)
 		goto out;
 
-	err = ua_connect(ua, &menu->xfer_targ, NULL, carg->prm, VIDMODE_ON);
+	err = pl_strdup(&uri, &pl_uri);
+	if (err)
+		goto out;
+
+	err = ua_connect(ua, &menu->xfer_targ, NULL, uri, VIDMODE_ON);
 
 	if (err)
 		goto out;
 
 	call_set_user_data(menu->xfer_targ, call_user_data(menu->xfer_call));
  out:
+	mem_deref(uri);
 	return err;
 
 }
